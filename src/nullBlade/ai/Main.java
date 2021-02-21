@@ -10,25 +10,27 @@ public class Main {
     public static void main(String[] args) {
         thread = new Random();
 
-        AI[] AiArray = new AI[512];
+        AI[] AiArray = new AI[2048];
 
         AiThread[] threads = new AiThread[4];
 
         for (int i = 0 ; AiArray.length > i ; i++) {
             AiArray[i] = new AI();
             AiArray[i].generateArrays(new int[] {
-                    64, 128, 256, 128, 64, 2, 2
+                    64, 128, 64, 2, 2
             });
             AiArray[i].learningMultiplier = thread.nextFloat()/(1028*thread.nextFloat());
         }
 
-        for (int thr = 0 ; threads.length > thr ; thr++) {
-            AI[] thisThreadsAI = new AI[AiArray.length/threads.length];
+        int AIperThread = AiArray.length/threads.length;
 
-            int o1 = 0;
-            for (int th = thr*(AiArray.length/threads.length) ; th < (thr+1)*(AiArray.length/threads.length) ; th++) {
-                thisThreadsAI[o1] = AiArray[th];
-                o1++;
+        int currentlyon=0;
+        for (int thr = 0 ; threads.length > thr ; thr++) {
+            AI[] thisThreadsAI = new AI[AIperThread];
+
+            for (int i=0; AIperThread > i ; i++) {
+                thisThreadsAI[i] = AiArray[currentlyon];
+                currentlyon++;
             }
 
             threads[thr] = new AiThread(thisThreadsAI, thr);
@@ -56,7 +58,7 @@ public class Main {
                     current = a;
                 }
             }
-            System.out.println("=----=----=----=----=");
+            System.out.println("=----=----=----=----=----=----=----=----=----=----=");
             System.out.println("max money: " + current.money);
             System.out.println("max houses: " + current.houses);
             for (AI a : AiArray) {
