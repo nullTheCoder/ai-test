@@ -1,6 +1,5 @@
 package nullBlade.ai;
 
-import java.sql.Time;
 import java.util.Calendar;
 import java.util.Random;
 
@@ -34,7 +33,7 @@ public class Main {
             }
 
             t[thr] = new Thread(() -> {
-                //long currentTime = Calendar.getInstance().getTimeInMillis();
+                long currentTime = Calendar.getInstance().getTimeInMillis();
 
                 for (AI a : thisThreadsAI) a.e();
 
@@ -98,7 +97,7 @@ public class Main {
                         }
                     }
                 }
-                //System.out.println("Thread on number: " + thrforlambda + " finished after: " + (Calendar.getInstance().getTimeInMillis()-currentTime) + "ms");
+                System.out.println("Thread on number: " + thrforlambda + " finished after: " + (Calendar.getInstance().getTimeInMillis()-currentTime) + "ms");
                 t[thrforlambda].stop();
             });
         }
