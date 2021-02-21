@@ -1,5 +1,7 @@
 package nullBlade.ai;
 
+import java.sql.Time;
+import java.util.Calendar;
 import java.util.Random;
 
 public class Main {
@@ -11,6 +13,9 @@ public class Main {
         thread = new Random();
 
         AI[] AiArray = new AI[256];
+
+        Thread[] t = new Thread[4];
+
         for (int i = 0 ; AiArray.length > i ; i++) {
             AiArray[i] = new AI();
             AiArray[i].generateArrays(new int[] {
@@ -19,68 +24,98 @@ public class Main {
             AiArray[i].learningMultiplier = thread.nextFloat()/(1028*thread.nextFloat());
         }
 
-        while (true) {
-            for (AI a : AiArray) a.e();
+        for (int thr = 0 ; t.length > thr ; thr++) { final int thrforlambda = thr;
+            AI[] thisThreadsAI = new AI[AiArray.length/t.length];
 
-            for (int i = 0 ; 10 > i ; i++) {
-                for (AI a : AiArray) {
-                    boolean going = true;
-                    a.money += a.houses * 3;
-                    while (going) {
-                        if (a.money < 5) {
-                            break;
-                        }
+            int o1 = 0;
+            for (int th = thr*(AiArray.length/t.length) ; th < (thr+1)*(AiArray.length/t.length) ; th++) {
+                thisThreadsAI[o1] = AiArray[th];
+                o1++;
+            }
 
-                        float[] houseArray = new float[16];
-                        int o = 0;
-                        for (char c : Integer.toBinaryString(a.houses).toCharArray()) {
-                            houseArray[o] = "1".equals(c+"") ? 1 : 0;
-                            o++;
-                        }
+            t[thr] = new Thread(() -> {
+                //long currentTime = Calendar.getInstance().getTimeInMillis();
 
-                        float[] inputArray = new float[64];
+                for (AI a : thisThreadsAI) a.e();
 
-                        float[] moneyArray = new float[32];
-                        o = 0;
-                        for (char c : Integer.toBinaryString(a.money).toCharArray()) {
-                            moneyArray[o] = "1".equals(c+"") ? 1 : 0;
-                            o++;
-                        }
+                for (int i = 0 ; 10 > i ; i++) {
+                    for (AI a : thisThreadsAI) {
+                        boolean going = true;
+                        a.money += a.houses * 3;
+                        while (going) {
+                            if (a.money < 5) {
+                                break;
+                            }
 
-                        float[] turnArray = new float[16];
-                        o = 0;
-                        for (char c : Integer.toBinaryString(i).toCharArray()) {
-                            moneyArray[o] = c == '1' ? 1 : 0;
-                            o++;
-                        }
+                            float[] houseArray = new float[16];
+                            int o = 0;
+                            for (char c : Integer.toBinaryString(a.houses).toCharArray()) {
+                                houseArray[o] = "1".equals(c+"") ? 1 : 0;
+                                o++;
+                            }
 
-                        o = 0;
-                        for (float f : houseArray) {
-                            inputArray[o] = f;
-                            o++;
-                        }
+                            float[] inputArray = new float[64];
 
-                        for (float f : moneyArray) {
-                            inputArray[o] = f;
-                            o++;
-                        }
+                            float[] moneyArray = new float[32];
+                            o = 0;
+                            for (char c : Integer.toBinaryString(a.money).toCharArray()) {
+                                moneyArray[o] = "1".equals(c+"") ? 1 : 0;
+                                o++;
+                            }
 
-                        for (float f : turnArray) {
-                            inputArray[o] = f;
-                            o++;
-                        }
+                            float[] turnArray = new float[16];
+                            o = 0;
+                            for (char c : Integer.toBinaryString(i).toCharArray()) {
+                                moneyArray[o] = c == '1' ? 1 : 0;
+                                o++;
+                            }
 
-                        boolean buyHouse = a.getExit(inputArray)[0][0] == 0? false : true;
+                            o = 0;
+                            for (float f : houseArray) {
+                                inputArray[o] = f;
+                                o++;
+                            }
 
-                        if (buyHouse) {
-                            a.money -= 5;
-                            a.houses += 1;
+                            for (float f : moneyArray) {
+                                inputArray[o] = f;
+                                o++;
+                            }
 
-                        } else {
-                            going = false;
+                            for (float f : turnArray) {
+                                inputArray[o] = f;
+                                o++;
+                            }
+
+                            boolean buyHouse = a.getExit(inputArray)[0][0] == 0? false : true;
+
+                            if (buyHouse) {
+                                a.money -= 5;
+                                a.houses += 1;
+
+                            } else {
+                                going = false;
+                            }
                         }
                     }
                 }
+                //System.out.println("Thread on number: " + thrforlambda + " finished after: " + (Calendar.getInstance().getTimeInMillis()-currentTime) + "ms");
+                t[thrforlambda].stop();
+            });
+        }
+
+        while (true) {
+
+            for (Thread th : t) {
+                th.run();
+            }
+
+            wh : while(true) {
+                for (Thread th : t) {
+                    if (th.isAlive()) {
+                        continue wh;
+                    }
+                }
+                break;
             }
 
             AI current = AiArray[0];
